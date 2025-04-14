@@ -9,7 +9,7 @@ df = pd.read_csv("Chileautos Chile - Cars Listings.csv")
 
 # Filtrar solo Santiago
 comunas_santiago = [
-    "Santiago", "Providencia", "Ñuñoa", "Las Condes", "La Reina", "Macul", "San Miguel",
+    "Metropolitana de Santiago", "Providencia", "Ñuñoa", "Las Condes", "La Reina", "Macul", "San Miguel",
     "La Florida", "Puente Alto", "Recoleta", "Independencia", "San Joaquín", "Maipú",
     "Pudahuel", "Estación Central", "Cerrillos", "Pedro Aguirre Cerda", "El Bosque",
     "Lo Espejo", "San Bernardo", "La Granja", "Lo Prado", "Renca", "Quinta Normal",
@@ -17,32 +17,51 @@ comunas_santiago = [
 ]
 df_santiago = df[df["Comuna"].isin(comunas_santiago)].copy()
 
-# Limpieza básica
-df_santiago = df_santiago.dropna(subset=["Transmision", "price", "Comuna", "Ano"])
-df_santiago["Ano"] = pd.to_numeric(df_santiago["Ano"], errors="coerce")
-df_santiago = df_santiago[df_santiago["price"] > 0]
-df_santiago = df_santiago[df_santiago["Ano"] > 1950]
+df_santiago.to_csv("datos_filtrados_santiago.csv", index=False)
 
-# Gráfico 1: Diagrama de violín – Precio por tipo de transmisión
-plt.figure(figsize=(10, 6))
-sns.violinplot(data=df_santiago, x="Transmision", y="price", palette="coolwarm", scale="width", cut=0)
-plt.title("Distribución de precios por tipo de transmisión (Santiago)")
-plt.ylabel("Precio (CLP)")
-plt.xlabel("Tipo de transmisión")
-plt.yscale('log')  # Por la gran dispersión
+"""
+Criterio 3: Marcas según comuna.
+Justificación: La distribución de marcas refleja preferencias de consumo en distintas comunas. 
+Esto puede relacionarse con el poder adquisitivo o el acceso a ciertos concesionarios.
+"""
+
+# Gráfico 3: Conteo de marcas más comunes por comuna (heatmap simplificado)
+top_marcas = df_santiago["Marca"].value_counts().nlargest(10).index
+df_marcas = df_santiago[df_santiago["Marca"].isin(top_marcas)]
+
+pivot_marcas = df_marcas.pivot_table(index="Comuna", columns="Marca", aggfunc="size", fill_value=0)
+plt.figure(figsize=(12, 8))
+sns.heatmap(pivot_marcas, cmap="YlGnBu", annot=True, fmt="d")
+plt.title("Distribución de las 10 marcas más comunes por comuna")
+plt.ylabel("Comuna")
+plt.xlabel("Marca")
 plt.tight_layout()
 plt.show()
 
-# Gráfico 2: Treemap – Edad promedio de autos por comuna
-df_santiago["Edad_auto"] = 2025 - df_santiago["Ano"]
-edad_comuna = df_santiago.groupby("Comuna")["Edad_auto"].mean().reset_index()
+"""
+Criterio 4: Propietarios por comuna.
+Justificación: La distribución de vendedores particular versus agencias por comuna permite identificar 
+zonas con mayor concentración de concesionarios y zonas más asociadas a venta entre particulares.
+"""
 
-fig = px.treemap(
-    edad_comuna,
-    path=["Comuna"],
-    values="Edad_auto",
-    color="Edad_auto",
-    color_continuous_scale="RdYlGn_r",
-    title="Edad promedio de los autos en venta por comuna (Santiago)"
+# Gráfico 4: Barras apiladas – tipo de propietario por comuna
+propietarios_comuna = df_santiago.groupby(["Comuna", "Propietarios"]).size().reset_index(name="Cantidad")
+
+pivot_propietarios = propietarios_comuna.pivot(index="Comuna", columns="Propietarios", values="Cantidad").fillna(0)
+
+pivot_propietarios = pivot_propietarios.sort_values(by="Particular", ascending=False)  # Ordenar por número de privados
+
+# Gráfico de barras apiladas
+pivot_propietarios.plot(
+    kind="bar",
+    stacked=True,
+    figsize=(12, 6),
+    colormap="Accent"
 )
-fig.show()
+
+plt.title("Distribución de tipo de propietario por comuna (Particular vs Agencia)")
+plt.xlabel("Comuna")
+plt.ylabel("Cantidad de autos")
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
