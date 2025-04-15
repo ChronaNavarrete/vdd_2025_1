@@ -11,7 +11,7 @@ comunas_santiago = [
     "cerro navia", "huechuraba", "peñalolen", "la cisterna", "vitacura", "lo barnechea"
 ]
 
-df = pd.read_csv('Chileautos Chile - Cars Listings.csv', sep=',')
+df = pd.read_csv('datos/Chileautos Chile - Cars Listings.csv', sep=';')
 df['Comuna'] = df['Comuna'].apply(lambda x: unidecode(x) if isinstance(x, str) else x)
 df['Combustible'] = df['Combustible'].str.lower()
 df['Comuna'] = df['Comuna'].str.lower()

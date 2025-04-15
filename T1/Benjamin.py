@@ -5,7 +5,7 @@ import numpy as np
 import plotly.express as px
 
 # Cargar el CSV
-df = pd.read_csv("Chileautos Chile - Cars Listings.csv")
+df = pd.read_csv("datos/Chileautos Chile - Cars Listings.csv")
 
 # Filtrar solo Santiago
 comunas_santiago = [
