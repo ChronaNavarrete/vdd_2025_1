@@ -11,7 +11,7 @@ from matplotlib.patches import Wedge
 
 #Criterio 5----------------------------------------------------------------------------------------------------------
 # Cargar datos
-df = pd.read_csv("Chileautos Chile - Cars Listings.csv")
+df = pd.read_csv("datos/Chileautos Chile - Cars Listings.csv")
 
 # Filtrar Santiago
 comunas_santiago = [
